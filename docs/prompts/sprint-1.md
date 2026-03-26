@@ -193,3 +193,5 @@ Cada review cobre: expectativas do stakeholder, o que foi entregue sob sua persp
 | P-12 | +2 stakeholders + estrutura por sprint | Documentação | `ux-frontend.md`, `domain-specialist.md`, reorganização em `sprint-1/` |
 | P-13 | Criar .gitignore | Infra | `.gitignore` (Go + Zig + .tfstate + secrets) |
 | P-14 | Criar README do projeto | Documentação | `README.md` |
+| P-15 | Atualizar README de reviews | Documentação | `docs/review/README.md` (médias) |
+

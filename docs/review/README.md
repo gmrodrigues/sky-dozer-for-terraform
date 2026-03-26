@@ -1,47 +1,62 @@
-# Reviews — terraform-panel
+# Reviews — sky-dozer-for-terraform
 
-Reviews da entrega de cada sprint, escritos sob perspectivas de diferentes stakeholders.
+Perspectivas de diferentes stakeholders sobre cada sprint, escritas de forma crítica e construtiva. Cada review avalia a entrega sob a lente de quem a lê — técnica, negocial, jurídica, de usuário, de dados.
 
 ---
 
-## Estrutura
+## Estrutura de Diretórios
 
 ```
 docs/review/
-└── sprint-1/          ← Reviews do Sprint 1
-    ├── po.md
-    ├── tech-lead.md
-    ├── secops.md
-    ├── architect.md
-    ├── finops.md
-    ├── end-user.md
-    ├── ceo.md
-    ├── sales.md
-    ├── lawyer.md
-    ├── hr.md
-    ├── jr-developer.md
-    ├── data-analyst.md
-    ├── ux-frontend.md
-    └── domain-specialist.md
+├── README.md           ← este arquivo
+└── sprint-1/           ← 14 reviews do Sprint 1
+    ├── po.md               Product Owner
+    ├── tech-lead.md        Tech Lead
+    ├── secops.md           SecOps Engineer
+    ├── architect.md        Software Architect
+    ├── finops.md           FinOps Engineer
+    ├── end-user.md         End User (Engenheira de Plataforma)
+    ├── ceo.md              CEO
+    ├── sales.md            Sales Specialist (Enterprise)
+    ├── lawyer.md           Advogado Corporativo
+    ├── hr.md               People & Culture
+    ├── jr-developer.md     Desenvolvedor Júnior
+    ├── data-analyst.md     Data Analyst
+    ├── ux-frontend.md      UX / Frontend Specialist
+    └── domain-specialist.md  Especialista em Terraform/IaC
 ```
 
 ---
 
-## Sprint 1
+## Sprint 1 — Fundação de Memória, Go Bridge e MultiArrayList
 
-| Arquivo | Stakeholder | Foco Principal | Score |
-|---|---|---|---|
-| [po.md](sprint-1/po.md) | Product Owner | Valor, roadmap, dívida técnica | 8.5/10 |
-| [tech-lead.md](sprint-1/tech-lead.md) | Tech Lead | Código, FFI safety, Zig API | 8/10 |
-| [secops.md](sprint-1/secops.md) | SecOps | Buffer safety, LGPD, supply chain | 6.5/10 |
-| [architect.md](sprint-1/architect.md) | Architect | ADRs, trade-offs, gaps longo prazo | 8.5/10 |
-| [finops.md](sprint-1/finops.md) | FinOps | ROI, custo de infra, risco de retrabalho | 7.5/10 |
-| [end-user.md](sprint-1/end-user.md) | End User (Eng. Plataforma) | UX esperada, features reais | 5/10 |
-| [ceo.md](sprint-1/ceo.md) | CEO | Estratégia, go-to-market, milestones | 7.5/10 |
-| [sales.md](sprint-1/sales.md) | Sales Specialist | Vendabilidade, leads enterprise | 3/10 |
-| [lawyer.md](sprint-1/lawyer.md) | Advogado | Trademark, LGPD, LICENSE ausente | — |
-| [hr.md](sprint-1/hr.md) | HR / People | Bus factor, hiring risk, cultura | 8/10 |
-| [jr-developer.md](sprint-1/jr-developer.md) | Dev Júnior | Onboarding, README, acessibilidade | 6/10 |
-| [data-analyst.md](sprint-1/data-analyst.md) | Data Analyst | Metodologia, benchmark stats | 5/10 |
-| [ux-frontend.md](sprint-1/ux-frontend.md) | UX / Frontend Specialist | Mental model, design system, acessibilidade | 4/10 |
-| [domain-specialist.md](sprint-1/domain-specialist.md) | Domain Specialist (Terraform) | Modelo de dados real vs sintético, casos de uso | 4/10 |
+> **Gate técnico:** FFI Go ↔ Zig (PRT-01) e benchmark SoA vs AoS (PRT-02).
+> **Entregáveis:** `go-bridge/`, `zig-engine/`, `libbridge.so`, testes, benchmark, documentação.
+
+| Stakeholder | Foco da Review | Score |
+|---|---|---|
+| [Product Owner](sprint-1/po.md) | Valor de negócio, roadmap, dívida técnica | 8.5/10 |
+| [Tech Lead](sprint-1/tech-lead.md) | Qualidade de código, segurança FFI, Zig 0.15 API | 8/10 |
+| [SecOps](sprint-1/secops.md) | Buffer overflow, supply chain, LGPD, auditoria | 6.5/10 |
+| [Architect](sprint-1/architect.md) | ADRs, trade-offs, arena vs GC, gaps de longo prazo | 8.5/10 |
+| [FinOps](sprint-1/finops.md) | ROI do benchmark, custo de infra, risco de retrabalho | 7.5/10 |
+| [End User](sprint-1/end-user.md) | UX esperada, features críticas do dia a dia | 5/10 |
+| [CEO](sprint-1/ceo.md) | Estratégia, competidores, milestone de demo em 60 dias | 7.5/10 |
+| [Sales Specialist](sprint-1/sales.md) | Vendabilidade enterprise, perguntas sem resposta, urgência de demo | 3/10 |
+| [Advogado](sprint-1/lawyer.md) | Trademark "Terraform", LGPD/GDPR, autoria de código IA, LICENSE ausente | — |
+| [HR / People](sprint-1/hr.md) | Bus factor, hiring difícil, cultura de documentação, retrospectiva | 8/10 |
+| [Dev Júnior](sprint-1/jr-developer.md) | Onboarding, README, `cgo` inacessível, good first issues | 6/10 |
+| [Data Analyst](sprint-1/data-analyst.md) | Metodologia de benchmark, std dev ausente, hardware não documentado | 5/10 |
+| [UX / Frontend](sprint-1/ux-frontend.md) | Mental model ZUI, design system, interações, acessibilidade WCAG | 4/10 |
+| [Domain Specialist](sprint-1/domain-specialist.md) | Fixture sintético vs `.tfstate` real, arestas ausentes, casos de uso | 4/10 |
+
+### Média dos Scores (Sprint 1)
+
+```
+Técnico     (TechLead + Architect + SecOps):      7.7 / 10
+Negócio     (PO + CEO + FinOps + Sales):           6.8 / 10
+Usuário     (EndUser + UX + Domain):               4.3 / 10  ← maior gap
+Processo    (HR + JrDev + DataAnalyst):            6.3 / 10
+```
+
+> Os scores baixos em "Usuário" são esperados para um sprint de fundação técnica — não há interface. O alerta real é que **os riscos de domínio e design ainda não estão no backlog**.
