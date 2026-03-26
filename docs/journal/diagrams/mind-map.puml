@@ -1,0 +1,107 @@
+@startuml mind-map
+!theme plain
+skinparam backgroundColor #FAFAFA
+
+<style>
+mindmapDiagram {
+  node {
+    BackgroundColor #EEF2FF
+    BorderColor #3F51B5
+    FontColor #212121
+    FontSize 13
+  }
+  rootNode {
+    BackgroundColor #3F51B5
+    FontColor #FFFFFF
+    FontSize 15
+    BorderColor #283593
+  }
+  :depth(1) {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+  }
+  :depth(2) {
+    BackgroundColor #F3E5F5
+    BorderColor #7B1FA2
+  }
+  :depth(3) {
+    BackgroundColor #E8F5E9
+    BorderColor #388E3C
+    FontSize 11
+  }
+}
+</style>
+
+title Mapa Mental — Arquitetura Sprint 1 (ZUI Motor)
+
+* ZUI Motor\nterraform-panel
+
+** Gargalos Atacados
+*** I/O & Parsing
+**** JSON subprocess → FFI direta
+**** c-shared library em Go
+**** Elimina desserialização JSON
+
+*** Memória & GC
+**** ArenaAllocator Zig
+**** Liberação O(1) de 50k nós
+**** GOMEMLIMIT / GOGC=off (Sprint 4)
+
+*** Cache da CPU
+**** SoA via MultiArrayList
+**** Arrays contíguos x[], y[]
+**** 12.45× vs AoS medido
+
+*** Renderização GPU
+**** R-Tree (Sprint 2)
+**** View-frustum culling
+**** Semantic LoD (Sprint 3)
+
+** Componentes Sprint 1
+
+*** go-bridge
+**** bridge.go
+***** ParseTFState export
+***** Regras cgo respeitadas
+**** gen-tfstate
+***** 50k nós sintéticos
+***** Seed reproduzível
+**** bridge_test.go
+***** Timing < 500ms
+***** Byte count exato
+***** ID spot-check
+***** Nil guards
+
+*** zig-engine
+**** src/main.zig
+***** ArenaAllocator
+***** @cImport bridge.h
+**** src/bench/soa_bench.zig
+***** ArrayList (AoS baseline)
+***** MultiArrayList (SoA)
+***** 100 runs, avg timing
+**** build.zig
+***** zig build test
+***** zig build bench
+
+** Resultados Validados
+*** PRT-01
+**** 70ms para 50k nós
+**** Limite: 500ms
+**** Status: PASS ✅
+*** PRT-02
+**** Speedup: 12.45×
+**** Limite: 1.40×
+**** Status: PASS ✅
+
+** Riscos Identificados
+*** Zig versioning
+**** 0.14 → 0.15 quebrou 4 APIs
+**** Fixar versão no README
+*** Zig runtime linker
+**** LD_LIBRARY_PATH pendente
+**** PRT-01 end-to-end incompleto
+*** Makefile vs build.zig
+**** Dois sistemas de build
+**** Consolidar no Sprint 2
+@enduml

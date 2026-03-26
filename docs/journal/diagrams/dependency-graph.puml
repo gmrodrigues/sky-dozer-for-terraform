@@ -1,0 +1,85 @@
+@startuml dependency-graph
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam roundcorner 8
+skinparam defaultTextAlignment center
+skinparam ArrowColor #555555
+
+skinparam package {
+  BackgroundColor #F3F4FF
+  BorderColor #3F51B5
+}
+skinparam rectangle {
+  BackgroundColor #E8F5E9
+  BorderColor #388E3C
+}
+skinparam component {
+  BackgroundColor #FFF8E1
+  BorderColor #F9A825
+}
+
+title Dependency Graph — terraform-panel Sprint 1
+
+package "go-bridge (Go module)" {
+  component [bridge.go\nParseHCL / ParseTFState] as BRIDGE
+  component [bridge_test.go] as BTEST
+  component [cmd/gen-tfstate/main.go] as GEN
+
+  component [encoding/json] as ENCJSON <<stdlib>>
+  component [unsafe] as UNSAFE <<stdlib>>
+  component [C interop (cgo)] as CGO <<stdlib>>
+  component [math/rand] as MRAND <<stdlib>>
+  component [testing] as TESTING <<stdlib>>
+}
+
+package "zig-engine (Zig project)" {
+  component [src/main.zig] as MAIN
+  component [src/bench/soa_bench.zig] as BENCH
+  component [build.zig] as BUILDZG
+
+  component [std.heap.ArenaAllocator] as ARENA <<std>>
+  component [std.MultiArrayList] as MAL <<std>>
+  component [std.ArrayList] as AL <<std>>
+  component [std.Random.DefaultPrng] as RNG <<std>>
+  component [std.time.Timer] as TIMER <<std>>
+  component [std.testing] as ZIGTEST <<std>>
+}
+
+rectangle "Build Artifacts" {
+  component [libbridge.so + bridge.h] as SO
+  component [testdata/fixture.tfstate.json] as FIXTURE
+  component [zig-out/bin/soa_bench] as BENCHBIN
+}
+
+' go-bridge internal deps
+BRIDGE --> ENCJSON
+BRIDGE --> UNSAFE
+BRIDGE --> CGO
+BTEST --> BRIDGE
+BTEST --> TESTING
+BTEST --> MRAND
+BTEST --> ENCJSON
+GEN --> ENCJSON
+GEN --> MRAND
+
+' go-bridge → artifacts
+BRIDGE ..> SO : go build\n-buildmode=c-shared
+GEN ..> FIXTURE : go run ./cmd/gen-tfstate
+
+' zig-engine internal deps
+MAIN --> ARENA
+MAIN --> ZIGTEST
+BENCH --> MAL
+BENCH --> AL
+BENCH --> RNG
+BENCH --> TIMER
+BUILDZG --> MAIN
+BUILDZG --> BENCH
+
+' zig-engine → artifacts
+BENCH ..> BENCHBIN : zig build bench
+
+' cross-boundary deps
+MAIN ..> SO : @cImport(bridge.h)\nlinkSystemLibrary("bridge")
+MAIN ..> FIXTURE : @embedFile
+@enduml

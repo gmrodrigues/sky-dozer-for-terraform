@@ -1,0 +1,70 @@
+@startuml c4-component
+!theme plain
+skinparam backgroundColor #FAFAFA
+
+' C4 Component Diagram using built-in C4 macros
+' (requires plantuml with C4 stdlib or inline definitions)
+
+skinparam rectangle {
+  BackgroundColor #EEF2FF
+  BorderColor #3F51B5
+  FontColor #212121
+}
+skinparam database {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+}
+skinparam component {
+  BackgroundColor #E8F5E9
+  BorderColor #388E3C
+}
+skinparam arrow {
+  Color #555555
+}
+skinparam roundcorner 10
+
+title C4 — Component Diagram: terraform-panel Sprint 1
+
+rectangle "terraform-panel System" {
+
+  rectangle "go-bridge" {
+    component "ParseTFState()\n//export" as PARSE <<Go c-shared>>
+    component "gen-tfstate\ncmd" as GEN <<Go executable>>
+    component "bridge_test.go\n(4 unit tests)" as GOTEST <<Go test>>
+  }
+
+  rectangle "zig-engine" {
+    component "main.zig\nIntegration Test" as ZIGTEST <<Zig test>>
+    component "soa_bench.zig\nPRT-02 Benchmark" as BENCH <<Zig executable>>
+    component "ArenaAllocator" as ARENA <<Zig stdlib>>
+    component "MultiArrayList(TFNode)" as MAL <<Zig stdlib>>
+    component "ArrayList(TFNode)" as AL <<Zig stdlib>>
+  }
+
+  database "fixture.tfstate.json\n(50k synthetic nodes\n2.6MB)" as FIXTURE <<File>>
+  database "libbridge.so\n(2.9MB)" as SO <<Shared Lib>>
+}
+
+GEN --> FIXTURE : generates (--count=50000 --seed=42)
+PARSE --> SO : compiled into
+GOTEST --> PARSE : tests (in-process)
+GOTEST ..> FIXTURE : reads via\nmakeSyntheticJSON()
+
+ZIGTEST --> SO : dlopen via @cImport
+ZIGTEST --> ARENA : owns output buffer
+ZIGTEST ..> FIXTURE : @embedFile
+
+BENCH --> MAL : SoA iteration\n(x[], y[] only)
+BENCH --> AL : AoS iteration\n(full TFNode struct)
+BENCH ..> ARENA : GPA allocator
+
+note bottom of SO
+  Built with:
+  go build -buildmode=c-shared
+end note
+
+note bottom of BENCH
+  Compiled with ReleaseFast
+  for realistic SIMD/cache perf
+end note
+@enduml

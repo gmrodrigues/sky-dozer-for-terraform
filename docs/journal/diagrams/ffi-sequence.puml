@@ -1,0 +1,60 @@
+@startuml ffi-sequence
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 8
+skinparam participantBorderColor #555
+skinparam participantBackgroundColor #EEF2FF
+
+title FFI Call Sequence — ParseTFState (PRT-01)
+
+participant "Zig Engine\n(zig-engine)" as ZIG #D0E8FF
+participant "ArenaAllocator\n(Zig stdlib)" as ARENA #E8F5E9
+participant "libbridge.so\n(Go c-shared)" as GO #FFF3E0
+participant "json.Unmarshal\n(encoding/json)" as JSON #FCE4EC
+
+ZIG -> ARENA : init(page_allocator)
+activate ARENA
+ARENA --> ZIG : arena: ArenaAllocator
+
+ZIG -> ARENA : alloc(NodeRecord, 50_000)
+ARENA --> ZIG : out_buf: []NodeRecord\n(pointer owned by Zig)
+
+note right of ZIG
+  Zig owns the buffer.
+  Go will only WRITE into it.
+  No Go heap pointers cross back.
+end note
+
+ZIG -> GO : ParseTFState(\n  json_ptr: *const i8,\n  out_buf: *anyopaque,\n  max: i32\n)
+activate GO
+
+GO -> JSON : json.Unmarshal(raw, &state)
+activate JSON
+JSON --> GO : state.Resources[50_000]
+deactivate JSON
+
+loop i = 0..49999
+  GO -> GO : write NodeRecord{id,x,y,w,h}\n→ out_buf[i]
+end
+
+note over GO
+  Go holds NO copy of out_buf
+  after return. cgo rule satisfied.
+end note
+
+GO --> ZIG : written: i32 = 50_000
+deactivate GO
+
+ZIG -> ZIG : assert(written == 50_000)
+ZIG -> ZIG : spot-check IDs & bounds
+
+ZIG -> ARENA : deinit()  // O(1) free
+deactivate ARENA
+
+note over ZIG, ARENA
+  All 50k NodeRecords freed
+  in a single arena.deinit() call.
+  No per-object GC cost.
+end note
+@enduml

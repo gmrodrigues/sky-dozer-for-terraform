@@ -1,0 +1,71 @@
+@startuml integration-pipeline
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam roundcorner 8
+skinparam ArrowColor #555
+skinparam defaultTextAlignment center
+
+skinparam activity {
+  BackgroundColor #EEF2FF
+  BorderColor #3F51B5
+  FontColor #212121
+}
+skinparam swimlane {
+  BorderColor #9E9E9E
+  TitleBackgroundColor #E0E0E0
+  TitleFontColor #212121
+}
+skinparam note {
+  BackgroundColor #FFFDE7
+  BorderColor #F9A825
+}
+
+title Pipeline de Integração — Sprint 1 Build & Test
+
+|#E3F2FD| Developer |
+start
+:Edita HCL / código fonte;
+
+|#E8F5E9| Go Toolchain |
+:go run cmd/gen-tfstate\n--count=50000 --seed=42;
+note right: gera fixture.tfstate.json (2.6MB)
+
+:go test ./...\n-run TestParseTFState;
+note right
+  PRT-01 Unit Tests:
+  · Timing < 500ms ✅
+  · Byte count ✅
+  · ID spot-check ✅
+  · Nil guards ✅
+end note
+
+:go build -buildmode=c-shared\n-o libbridge.so;
+note right: Produz libbridge.so (2.9MB)\n+ bridge.h (header C)
+
+|#FFF3E0| Zig Toolchain |
+:zig build bench\n(ReleaseFast);
+note right
+  PRT-02 SoA vs AoS:
+  AoS avg: 70µs
+  SoA avg:  5µs
+  Speedup: 12.45× ✅
+end note
+
+:zig build test\n-Dbridge-path=../go-bridge;
+note right
+  PRT-01 Integration:
+  (requer LD_LIBRARY_PATH)
+  ⚠ pendente configuração
+  de runtime linker
+end note
+
+|#F3E5F5| CI / Verificação |
+if (Todos os gates passaram?) then (sim)
+  :Sprint 1 PASS\nAvança para Sprint 2;
+  stop
+else (não)
+  :Falha registrada\nno journal;
+  :Retorna ao desenvolvimento;
+  stop
+endif
+@enduml
